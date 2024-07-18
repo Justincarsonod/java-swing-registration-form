@@ -1,0 +1,105 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.*;
+
+public class RegistrationForm extends JFrame {
+    private JTextField nameField, mobileField;
+    private JRadioButton maleButton, femaleButton;
+    private JTextField dobField;
+    private JTextArea addressField;
+    private JButton submitButton, resetButton;
+
+    public RegistrationForm() {
+        setTitle("Registration Form");
+        setSize(400, 400);
+        setLayout(new GridLayout(6, 2));
+
+        // Form Fields
+        nameField = new JTextField();
+        mobileField = new JTextField();
+        maleButton = new JRadioButton("Male");
+        femaleButton = new JRadioButton("Female");
+        ButtonGroup genderGroup = new ButtonGroup();
+        genderGroup.add(maleButton);
+        genderGroup.add(femaleButton);
+        dobField = new JTextField();
+        addressField = new JTextArea();
+
+        // Buttons
+        submitButton = new JButton("Submit");
+        resetButton = new JButton("Reset");
+
+        add(new JLabel("Name:"));
+        add(nameField);
+        add(new JLabel("Mobile:"));
+        add(mobileField);
+        add(new JLabel("Gender:"));
+        JPanel genderPanel = new JPanel(new FlowLayout());
+        genderPanel.add(maleButton);
+        genderPanel.add(femaleButton);
+        add(genderPanel);
+        add(new JLabel("DOB (YYYY-MM-DD):"));
+        add(dobField);
+        add(new JLabel("Address:"));
+        add(new JScrollPane(addressField));
+        add(submitButton);
+        add(resetButton);
+
+        // Button Actions
+        submitButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                submitForm();
+            }
+        });
+
+        resetButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                resetForm();
+            }
+        });
+
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setVisible(true);
+    }
+
+    private void submitForm() {
+        String name = nameField.getText();
+        String mobile = mobileField.getText();
+        String gender = maleButton.isSelected() ? "Male" : "Female";
+        String dob = dobField.getText();
+        String address = addressField.getText();
+
+        try {
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/RegistrationDB", "root", "password");
+            String query = "INSERT INTO Registration (name, mobile, gender, dob, address) VALUES (?, ?, ?, ?, ?)";
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setString(1, name);
+            preparedStatement.setString(2, mobile);
+            preparedStatement.setString(3, gender);
+            preparedStatement.setString(4, dob);
+            preparedStatement.setString(5, address);
+            preparedStatement.executeUpdate();
+            connection.close();
+
+            JOptionPane.showMessageDialog(this, "Data Submitted Successfully");
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    private void resetForm() {
+        nameField.setText("");
+        mobileField.setText("");
+        genderGroup.clearSelection();
+        dobField.setText("");
+        addressField.setText("");
+    }
+
+    public static void main(String[] args) {
+        new RegistrationForm();
+    }
+}
